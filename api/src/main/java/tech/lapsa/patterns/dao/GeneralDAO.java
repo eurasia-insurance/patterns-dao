@@ -18,7 +18,7 @@ public interface GeneralDAO<T, I> {
 
     T getByIdByPassCache(I id) throws NotFound;
 
-    default Optional<T> optionalByIdByPassCache(I id) throws NotFound {
+    default Optional<T> optionalByIdByPassCache(I id) {
 	try {
 	    return Optional.of(getByIdByPassCache(id));
 	} catch (NotFound e) {
