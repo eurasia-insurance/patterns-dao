@@ -8,9 +8,9 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>patterns-dao-client</artifactId>
+	<artifactId>patterns-dao-api</artifactId>
 	<packaging>jar</packaging>
 
-	<name>Patterns Lib : DAO : EJB-client</name>
+	<name>Patterns Lib : DAO : EJB API</name>
 
 </project>

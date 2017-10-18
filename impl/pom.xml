@@ -8,10 +8,10 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>patterns-dao</artifactId>
+	<artifactId>patterns-dao-impl</artifactId>
 	<packaging>jar</packaging>
 
-	<name>Patterns Lib : DAO : EJB</name>
+	<name>Patterns Lib : DAO : EJB impl</name>
 
 	<dependencies>
 		<!-- tech -->
@@ -24,7 +24,7 @@
 		<!-- own -->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>patterns-dao-client</artifactId>
+			<artifactId>patterns-dao-api</artifactId>
 			<scope>compile</scope>
 			<optional>false</optional>
 		</dependency>

@@ -16,8 +16,8 @@
 	<name>Patterns Lib : DAO : Root POM</name>
 
 	<modules>
-		<module>client</module>
-		<module>beans</module>
+		<module>api</module>
+		<module>impl</module>
 	</modules>
 
 	<properties>
@@ -46,12 +46,12 @@
 			<!-- own -->
 			<dependency>
 				<groupId>${project.groupId}</groupId>
-				<artifactId>patterns-dao-client</artifactId>
+				<artifactId>patterns-dao-api</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
-				<artifactId>patterns-dao</artifactId>
+				<artifactId>patterns-dao-impl</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
