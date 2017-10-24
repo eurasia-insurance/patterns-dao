@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javax.ejb.TransactionAttribute;
@@ -26,7 +25,6 @@ public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
     protected static final String HINT_JAVAX_PERSISTENCE_CACHE_RETREIVE_MODE = "javax.persistence.cache.retreiveMode";
 
     protected final Class<T> entityClass;
-    protected final Logger logger = Logger.getLogger(this.getClass().getPackage().getName());
 
     protected AGeneralDAO(final Class<T> entityClazz) {
 	this.entityClass = entityClazz;
