@@ -41,4 +41,6 @@ public interface GeneralDAO<T, I> {
     }
 
     <ET extends T> void delete(ET entity) throws NotFound;
+
+    <ET extends T> void prepareSerializing(ET entity) throws NotFound;
 }
