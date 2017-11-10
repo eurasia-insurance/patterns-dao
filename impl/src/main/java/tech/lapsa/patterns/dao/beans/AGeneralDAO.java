@@ -12,12 +12,15 @@ import javax.persistence.CacheRetrieveMode;
 import javax.persistence.CacheStoreMode;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 
 import tech.lapsa.java.commons.function.MyMaps;
 import tech.lapsa.java.commons.function.MyObjects;
 import tech.lapsa.patterns.dao.GeneralDAO;
 import tech.lapsa.patterns.dao.NotFound;
+import tech.lapsa.patterns.dao.TooMuchFound;
 
 public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
 
@@ -94,6 +97,16 @@ public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
 	}
     }
 
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public <ET extends T> void beforeSerialization(ET entity) throws NotFound {
+	try {
+	    getEntityManager().detach(entity);
+	} catch (IllegalArgumentException e) {
+	    throw new NotFound(String.format("Entity %1$s is not persistent", entityClass.getName()), e);
+	}
+    }
+
     // PROTECTED
 
     protected abstract EntityManager getEntityManager();
@@ -107,6 +120,20 @@ public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
     protected <X> List<X> resultListNoCached(final TypedQuery<X> query) {
 	return putNoCacheHints(query)
 		.getResultList();
+    }
+
+    protected <X> X signleResultNoCached(final TypedQuery<X> query) throws NotFound, TooMuchFound {
+	return signleResult(putNoCacheHints(query));
+    }
+
+    protected <X> X signleResult(final TypedQuery<X> query) throws NotFound, TooMuchFound {
+	try {
+	    return query.getSingleResult();
+	} catch (NoResultException e) {
+	    throw new NotFound(e);
+	} catch (NonUniqueResultException e) {
+	    throw new TooMuchFound(e);
+	}
     }
 
     // PRIVATE
