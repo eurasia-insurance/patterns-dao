@@ -99,7 +99,7 @@ public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
 
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public <ET extends T> void prepareSerializing(ET entity) throws NotFound {
+    public <ET extends T> void beforeSerialization(ET entity) throws NotFound {
 	try {
 	    getEntityManager().detach(entity);
 	} catch (IllegalArgumentException e) {
