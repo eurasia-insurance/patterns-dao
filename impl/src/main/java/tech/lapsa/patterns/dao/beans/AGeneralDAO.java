@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.ejb.EJBException;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.CacheRetrieveMode;
@@ -14,6 +15,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
+import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
 
 import tech.lapsa.java.commons.function.MyMaps;
@@ -51,9 +53,13 @@ public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public <ET extends T> ET save(ET entity) {
-	ET merged = getEntityManager().merge(entity);
-	getEntityManager().flush();
-	return merged;
+	try {
+	    ET merged = getEntityManager().merge(entity);
+	    getEntityManager().flush();
+	    return merged;
+	} catch (PersistenceException e) {
+	    throw new EJBException(e);
+	}
     }
 
     @Override
@@ -65,18 +71,24 @@ public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
 	    return merged;
 	} catch (EntityNotFoundException e) {
 	    throw new NotFound(String.format("Entity is not persisted %1$s", entityClass.getCanonicalName()), e);
+	} catch (PersistenceException e) {
+	    throw new EJBException(e);
 	}
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public <ET extends T> Collection<ET> saveAll(final Collection<ET> entities) {
-	MyObjects.requireNonNull(entities, "entities");
-	Collection<ET> ret = entities.stream() //
-		.map(getEntityManager()::merge) //
-		.collect(Collectors.toList());
-	getEntityManager().flush();
-	return ret;
+	try {
+	    MyObjects.requireNonNull(entities, "entities");
+	    Collection<ET> ret = entities.stream() //
+		    .map(getEntityManager()::merge) //
+		    .collect(Collectors.toList());
+	    getEntityManager().flush();
+	    return ret;
+	} catch (PersistenceException e) {
+	    throw new EJBException(e);
+	}
     }
 
     @Override
@@ -94,6 +106,8 @@ public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
 	    getEntityManager().flush();
 	} catch (IllegalArgumentException e) {
 	    throw new NotFound(String.format("Entity %1$s is not persistent", entityClass.getName()), e);
+	} catch (PersistenceException e) {
+	    throw new EJBException(e);
 	}
     }
 
@@ -118,8 +132,12 @@ public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
     }
 
     protected <X> List<X> resultListNoCached(final TypedQuery<X> query) {
-	return putNoCacheHints(query)
-		.getResultList();
+	try {
+	    return putNoCacheHints(query)
+		    .getResultList();
+	} catch (PersistenceException e) {
+	    throw new EJBException(e);
+	}
     }
 
     protected <X> X signleResultNoCached(final TypedQuery<X> query) throws NotFound, TooMuchFound {
@@ -133,6 +151,8 @@ public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
 	    throw new NotFound(e);
 	} catch (NonUniqueResultException e) {
 	    throw new TooMuchFound(e);
+	} catch (PersistenceException e) {
+	    throw new EJBException(e);
 	}
     }
 

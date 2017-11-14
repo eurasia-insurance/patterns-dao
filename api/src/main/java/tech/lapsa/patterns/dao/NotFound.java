@@ -1,6 +1,6 @@
 package tech.lapsa.patterns.dao;
 
-public class NotFound extends RuntimeException {
+public class NotFound extends Exception {
     private static final long serialVersionUID = 1L;
 
     public NotFound() {
