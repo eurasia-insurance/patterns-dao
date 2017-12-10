@@ -1,5 +1,6 @@
 package tech.lapsa.patterns.dao.beans;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +23,8 @@ import tech.lapsa.java.commons.function.MyMaps;
 import tech.lapsa.java.commons.function.MyObjects;
 import tech.lapsa.patterns.dao.GeneralDAO;
 import tech.lapsa.patterns.dao.NotFound;
-import tech.lapsa.patterns.dao.TooMuchFound;
 
-public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
+public abstract class AGeneralDAO<T extends Serializable, I extends Serializable> implements GeneralDAO<T, I> {
 
     protected static final String HINT_JAVAX_PERSISTENCE_CACHE_STORE_MODE = "javax.persistence.cache.storeMode";
     protected static final String HINT_JAVAX_PERSISTENCE_CACHE_RETREIVE_MODE = "javax.persistence.cache.retreiveMode";
@@ -140,17 +140,17 @@ public abstract class AGeneralDAO<T, I> implements GeneralDAO<T, I> {
 	}
     }
 
-    protected <X> X signleResultNoCached(final TypedQuery<X> query) throws NotFound, TooMuchFound {
+    protected <X> X signleResultNoCached(final TypedQuery<X> query) throws NotFound {
 	return signleResult(putNoCacheHints(query));
     }
 
-    protected <X> X signleResult(final TypedQuery<X> query) throws NotFound, TooMuchFound {
+    protected <X> X signleResult(final TypedQuery<X> query) throws NotFound {
 	try {
-	    return query.getSingleResult();
+	    return query.setMaxResults(1).getSingleResult();
 	} catch (NoResultException e) {
 	    throw new NotFound(e);
 	} catch (NonUniqueResultException e) {
-	    throw new TooMuchFound(e);
+	    throw new EJBException(e);
 	} catch (PersistenceException e) {
 	    throw new EJBException(e);
 	}
