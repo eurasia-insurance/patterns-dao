@@ -2,16 +2,11 @@ package tech.lapsa.patterns.dao.beans;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.ejb.EJBException;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.persistence.CacheRetrieveMode;
-import javax.persistence.CacheStoreMode;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
@@ -19,15 +14,13 @@ import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
 
-import tech.lapsa.java.commons.function.MyMaps;
 import tech.lapsa.java.commons.function.MyObjects;
+import tech.lapsa.java.commons.function.MyOptionals;
+import tech.lapsa.java.commons.function.MyStrings;
 import tech.lapsa.patterns.dao.GeneralDAO;
 import tech.lapsa.patterns.dao.NotFound;
 
 public abstract class AGeneralDAO<T extends Serializable, I extends Serializable> implements GeneralDAO<T, I> {
-
-    protected static final String HINT_JAVAX_PERSISTENCE_CACHE_STORE_MODE = "javax.persistence.cache.storeMode";
-    protected static final String HINT_JAVAX_PERSISTENCE_CACHE_RETREIVE_MODE = "javax.persistence.cache.retreiveMode";
 
     protected final Class<T> entityClass;
 
@@ -37,25 +30,18 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
 
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public T getById(final I id) throws NotFound {
-	return getByIdAndHint(id, null);
-    }
-
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public T getByIdByPassCache(final I id) throws NotFound {
-	return getByIdAndHint(id, MyMaps.of( //
-		HINT_JAVAX_PERSISTENCE_CACHE_RETREIVE_MODE, CacheRetrieveMode.BYPASS, //
-		HINT_JAVAX_PERSISTENCE_CACHE_STORE_MODE, CacheStoreMode.REFRESH //
-	));
+    public T getById(final I id) throws IllegalArgumentException, NotFound {
+	MyObjects.requireNonNull(id, "id");
+	return MyOptionals.of(getEntityManager().find(entityClass, id)) //
+		.orElseThrow(() -> new NotFound(
+			String.format("Not found %1$s with id = '%2$s'", entityClass.getSimpleName(), id)));
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public <ET extends T> ET save(ET entity) {
+    public <ET extends T> ET save(ET entity) throws IllegalArgumentException {
 	try {
 	    ET merged = getEntityManager().merge(entity);
-	    getEntityManager().flush();
 	    return merged;
 	} catch (PersistenceException e) {
 	    throw new EJBException(e);
@@ -64,7 +50,7 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public <ET extends T> ET restore(final ET entity) throws NotFound {
+    public <ET extends T> ET restore(final ET entity) throws IllegalArgumentException, NotFound {
 	try {
 	    ET merged = getEntityManager().merge(entity);
 	    getEntityManager().refresh(merged);
@@ -78,13 +64,12 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public <ET extends T> Collection<ET> saveAll(final Collection<ET> entities) {
+    public <ET extends T> Collection<ET> saveAll(final Collection<ET> entities) throws IllegalArgumentException {
 	try {
 	    MyObjects.requireNonNull(entities, "entities");
 	    Collection<ET> ret = entities.stream() //
 		    .map(getEntityManager()::merge) //
 		    .collect(Collectors.toList());
-	    getEntityManager().flush();
 	    return ret;
 	} catch (PersistenceException e) {
 	    throw new EJBException(e);
@@ -93,19 +78,17 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void deleteById(I id) throws NotFound {
+    public void deleteById(I id) throws IllegalArgumentException, NotFound {
 	delete(getById(id));
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public <ET extends T> void delete(ET entity) throws NotFound {
+    public <ET extends T> void delete(ET entity) throws IllegalArgumentException, NotFound {
 	try {
-	    getEntityManager().flush();
 	    getEntityManager().remove(entity);
-	    getEntityManager().flush();
 	} catch (IllegalArgumentException e) {
-	    throw new NotFound(String.format("Entity %1$s is not persistent", entityClass.getName()), e);
+	    throw new NotFound(MyStrings.format("Entity %1$s is not persistent", entityClass.getName()), e);
 	} catch (PersistenceException e) {
 	    throw new EJBException(e);
 	}
@@ -113,9 +96,10 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
 
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public <ET extends T> void detach(ET entity) throws NotFound {
+    public <ET extends T> ET detach(ET entity) throws IllegalArgumentException, NotFound {
 	try {
 	    getEntityManager().detach(entity);
+	    return entity;
 	} catch (IllegalArgumentException e) {
 	    throw new NotFound(String.format("Entity %1$s is not persistent", entityClass.getName()), e);
 	}
@@ -124,25 +108,6 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
     // PROTECTED
 
     protected abstract EntityManager getEntityManager();
-
-    protected <X> TypedQuery<X> putNoCacheHints(final TypedQuery<X> query) {
-	return query
-		.setHint(HINT_JAVAX_PERSISTENCE_CACHE_RETREIVE_MODE, CacheRetrieveMode.BYPASS)
-		.setHint(HINT_JAVAX_PERSISTENCE_CACHE_STORE_MODE, CacheStoreMode.REFRESH);
-    }
-
-    protected <X> List<X> resultListNoCached(final TypedQuery<X> query) {
-	try {
-	    return putNoCacheHints(query)
-		    .getResultList();
-	} catch (PersistenceException e) {
-	    throw new EJBException(e);
-	}
-    }
-
-    protected <X> X signleResultNoCached(final TypedQuery<X> query) throws NotFound {
-	return signleResult(putNoCacheHints(query));
-    }
 
     protected <X> X signleResult(final TypedQuery<X> query) throws NotFound {
 	try {
@@ -158,14 +123,4 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
 
     // PRIVATE
 
-    private T getByIdAndHint(final I id, Map<String, Object> hints)
-	    throws NotFound {
-	MyObjects.requireNonNull(id, "id");
-	return Optional.ofNullable( //
-		MyObjects.nonNull(hints) //
-			? getEntityManager().find(entityClass, id, hints) //
-			: getEntityManager().find(entityClass, id))
-		.orElseThrow(() -> new NotFound(
-			String.format("Not found %1$s with id = '%2$s'", entityClass.getSimpleName(), id)));
-    }
 }
