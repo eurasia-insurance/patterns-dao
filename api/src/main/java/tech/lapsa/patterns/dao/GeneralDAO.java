@@ -1,46 +1,21 @@
 package tech.lapsa.patterns.dao;
 
+import java.io.Serializable;
 import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
-public interface GeneralDAO<T, I> {
+public interface GeneralDAO<T extends Serializable, I extends Serializable> {
 
-    T getById(I id) throws NotFound;
+    T getById(I id) throws IllegalArgumentException, NotFound;
 
-    default Optional<T> optionalById(I id) {
-	try {
-	    return Optional.of(getById(id));
-	} catch (NotFound e) {
-	    return Optional.empty();
-	}
-    }
+    <ET extends T> ET save(ET entity) throws IllegalArgumentException;
 
-    T getByIdByPassCache(I id) throws NotFound;
+    <ET extends T> ET restore(ET entity) throws IllegalArgumentException, NotFound;
 
-    default Optional<T> optionalByIdByPassCache(I id) {
-	try {
-	    return Optional.of(getByIdByPassCache(id));
-	} catch (NotFound e) {
-	    return Optional.empty();
-	}
-    }
+    <ET extends T> Collection<ET> saveAll(Collection<ET> entities) throws IllegalArgumentException;
 
-    <ET extends T> ET save(ET entity);
+    void deleteById(I id) throws IllegalArgumentException, NotFound;
 
-    <ET extends T> ET restore(ET entity) throws NotFound;
+    <ET extends T> void delete(ET entity) throws IllegalArgumentException, NotFound;
 
-    default <ET extends T> Collection<ET> saveAll(Collection<ET> entities) {
-	return entities.stream() //
-		.map(this::save) //
-		.collect(Collectors.toList());
-    }
-
-    default void deleteById(I id) throws NotFound {
-	delete(getById(id));
-    }
-
-    <ET extends T> void delete(ET entity) throws NotFound;
-
-    <ET extends T> void detach(ET entity) throws NotFound;
+    <ET extends T> ET detach(ET entity) throws IllegalArgumentException, NotFound;
 }
