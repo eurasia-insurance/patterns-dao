@@ -39,7 +39,7 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public <ET extends T> ET save(final ET entity) throws IllegalArgument {
 	MyObjects.requireNonNull(IllegalArgument::new, entity, "entity");
 	try {
@@ -66,7 +66,7 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public <ET extends T> Collection<ET> saveAll(final Collection<ET> entities) throws IllegalArgument {
 	MyObjects.requireNonNull(IllegalArgument::new, entities, "entities");
 	try {
@@ -81,13 +81,13 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void deleteById(final I id) throws IllegalArgument, NotFound {
 	delete(getById(id));
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public <ET extends T> void delete(final ET entity) throws IllegalArgument, NotFound {
 	MyObjects.requireNonNull(IllegalArgument::new, entity, "entity");
 	try {
