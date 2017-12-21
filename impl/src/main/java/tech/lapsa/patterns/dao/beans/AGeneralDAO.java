@@ -14,9 +14,10 @@ import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
 
+import tech.lapsa.java.commons.exceptions.IllegalArgument;
+import tech.lapsa.java.commons.function.MyExceptions;
 import tech.lapsa.java.commons.function.MyObjects;
 import tech.lapsa.java.commons.function.MyOptionals;
-import tech.lapsa.java.commons.function.MyStrings;
 import tech.lapsa.patterns.dao.GeneralDAO;
 import tech.lapsa.patterns.dao.NotFound;
 
@@ -30,78 +31,83 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
 
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public T getById(final I id) throws IllegalArgumentException, NotFound {
-	MyObjects.requireNonNull(id, "id");
+    public T getById(final I id) throws IllegalArgument, NotFound {
+	MyObjects.requireNonNull(IllegalArgument::new, id, "id");
 	return MyOptionals.of(getEntityManager().find(entityClass, id)) //
-		.orElseThrow(() -> new NotFound(
-			String.format("Not found %1$s with id = '%2$s'", entityClass.getSimpleName(), id)));
+		.orElseThrow(MyExceptions.supplier(NotFound::new, "Not found %1$s with id = '%2$s'",
+			entityClass.getSimpleName(), id));
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public <ET extends T> ET save(ET entity) throws IllegalArgumentException {
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public <ET extends T> ET save(final ET entity) throws IllegalArgument {
+	MyObjects.requireNonNull(IllegalArgument::new, entity, "entity");
 	try {
-	    ET merged = getEntityManager().merge(entity);
+	    final ET merged = getEntityManager().merge(entity);
 	    return merged;
-	} catch (PersistenceException e) {
+	} catch (final PersistenceException e) {
 	    throw new EJBException(e);
 	}
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public <ET extends T> ET restore(final ET entity) throws IllegalArgumentException, NotFound {
+    public <ET extends T> ET restore(final ET entity) throws IllegalArgument, NotFound {
+	MyObjects.requireNonNull(IllegalArgument::new, entity, "entity");
 	try {
-	    ET merged = getEntityManager().merge(entity);
+	    final ET merged = getEntityManager().merge(entity);
 	    getEntityManager().refresh(merged);
 	    return merged;
-	} catch (EntityNotFoundException e) {
-	    throw new NotFound(String.format("Entity is not persisted %1$s", entityClass.getCanonicalName()), e);
-	} catch (PersistenceException e) {
+	} catch (final EntityNotFoundException e) {
+	    throw MyExceptions.format(NotFound::new, e, "Entity is not persisted %1$s", entityClass.getName());
+	} catch (final PersistenceException e) {
 	    throw new EJBException(e);
 	}
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public <ET extends T> Collection<ET> saveAll(final Collection<ET> entities) throws IllegalArgumentException {
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public <ET extends T> Collection<ET> saveAll(final Collection<ET> entities) throws IllegalArgument {
+	MyObjects.requireNonNull(IllegalArgument::new, entities, "entities");
 	try {
 	    MyObjects.requireNonNull(entities, "entities");
-	    Collection<ET> ret = entities.stream() //
+	    final Collection<ET> ret = entities.stream() //
 		    .map(getEntityManager()::merge) //
 		    .collect(Collectors.toList());
 	    return ret;
-	} catch (PersistenceException e) {
+	} catch (final PersistenceException e) {
 	    throw new EJBException(e);
 	}
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void deleteById(I id) throws IllegalArgumentException, NotFound {
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void deleteById(final I id) throws IllegalArgument, NotFound {
 	delete(getById(id));
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public <ET extends T> void delete(ET entity) throws IllegalArgumentException, NotFound {
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public <ET extends T> void delete(final ET entity) throws IllegalArgument, NotFound {
+	MyObjects.requireNonNull(IllegalArgument::new, entity, "entity");
 	try {
 	    getEntityManager().remove(entity);
-	} catch (IllegalArgumentException e) {
-	    throw new NotFound(MyStrings.format("Entity %1$s is not persistent", entityClass.getName()), e);
-	} catch (PersistenceException e) {
+	} catch (final IllegalArgumentException e) {
+	    throw MyExceptions.format(NotFound::new, e, "Entity %1$s is not persistent", entityClass.getName());
+	} catch (final PersistenceException e) {
 	    throw new EJBException(e);
 	}
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public <ET extends T> ET detach(ET entity) throws IllegalArgumentException, NotFound {
+    public <ET extends T> ET detach(final ET entity) throws IllegalArgument, NotFound {
+	MyObjects.requireNonNull(IllegalArgument::new, entity, "entity");
 	try {
 	    getEntityManager().detach(entity);
 	    return entity;
-	} catch (IllegalArgumentException e) {
-	    throw new NotFound(String.format("Entity %1$s is not persistent", entityClass.getName()), e);
+	} catch (final IllegalArgumentException e) {
+	    throw MyExceptions.format(NotFound::new, e, "Entity %1$s is not persistent", entityClass.getName());
 	}
     }
 
@@ -112,11 +118,11 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
     protected <X> X signleResult(final TypedQuery<X> query) throws NotFound {
 	try {
 	    return query.setMaxResults(1).getSingleResult();
-	} catch (NoResultException e) {
-	    throw new NotFound(e);
-	} catch (NonUniqueResultException e) {
+	} catch (final NoResultException e) {
+	    throw MyExceptions.format(NotFound::new, "Not found entity %1$s", entityClass.getName());
+	} catch (final NonUniqueResultException e) {
 	    throw new EJBException(e);
-	} catch (PersistenceException e) {
+	} catch (final PersistenceException e) {
 	    throw new EJBException(e);
 	}
     }

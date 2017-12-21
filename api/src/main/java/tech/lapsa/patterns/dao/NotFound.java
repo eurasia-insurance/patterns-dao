@@ -7,15 +7,15 @@ public class NotFound extends Exception {
     public NotFound() {
     }
 
-    public NotFound(String message, Throwable cause) {
+    public NotFound(final String message, final Throwable cause) {
 	super(message, cause);
     }
 
-    public NotFound(String message) {
+    public NotFound(final String message) {
 	super(message);
     }
 
-    public NotFound(Throwable cause) {
+    public NotFound(final Throwable cause) {
 	super(cause);
     }
 }

@@ -17,21 +17,22 @@ public final class Predictates {
 	AND, OR
     };
 
-    public static Optional<Predicate> textMatches(CriteriaBuilder cb, Expression<String> expression, String matchesTo) {
+    public static Optional<Predicate> textMatches(final CriteriaBuilder cb, final Expression<String> expression,
+	    final String matchesTo) {
 	return textMatches(MatchMode.AND, cb, expression, matchesTo);
     }
 
-    public static Optional<Predicate> textMatches(MatchMode matchMode, CriteriaBuilder cb,
-	    Expression<String> expression,
-	    String matchesTo) {
+    public static Optional<Predicate> textMatches(final MatchMode matchMode, final CriteriaBuilder cb,
+	    final Expression<String> expression,
+	    final String matchesTo) {
 	if (matchesTo == null || matchesTo.trim().isEmpty())
 	    return Optional.empty();
-	List<Predicate> words = new ArrayList<>();
-	for (String verb : matchesTo.split("\\s+")) {
-	    String pattern = '%' + verb.replaceAll("%", "") + '%';
+	final List<Predicate> words = new ArrayList<>();
+	for (final String verb : matchesTo.split("\\s+")) {
+	    final String pattern = '%' + verb.replaceAll("%", "") + '%';
 	    words.add(cb.like(expression, pattern));
 	}
-	Predicate[] list = words.toArray(new Predicate[0]);
+	final Predicate[] list = words.toArray(new Predicate[0]);
 	switch (matchMode) {
 	case OR:
 	    return Optional.of(cb.or(list));

@@ -12,4 +12,11 @@
 
 	<name>Patterns Lib : DAO : EJB API</name>
 
+	<dependencies>
+		<dependency>
+			<groupId>tech.lapsa.java</groupId>
+			<artifactId>java-commons</artifactId>
+		</dependency>
+	</dependencies>
+
 </project>
