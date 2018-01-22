@@ -91,7 +91,8 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
     public <ET extends T> void delete(final ET entity) throws IllegalArgument, NotFound {
 	MyObjects.requireNonNull(IllegalArgument::new, entity, "entity");
 	try {
-	    getEntityManager().remove(entity);
+	    final ET merged = getEntityManager().merge(entity);
+	    getEntityManager().remove(merged);
 	} catch (final IllegalArgumentException e) {
 	    throw MyExceptions.format(NotFound::new, e, "Entity %1$s is not persistent", entityClass.getName());
 	} catch (final PersistenceException e) {
