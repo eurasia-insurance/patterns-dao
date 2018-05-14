@@ -22,7 +22,7 @@
 	<properties>
 		<!-- BOMS -->
 		<javax-javaee-bom.version>7.0a</javax-javaee-bom.version>
-		<java-commons.version>1.3-SNAPSHOT</java-commons.version>
+		<java-commons.version>1.3</java-commons.version>
 	</properties>
 
 	<dependencyManagement>
