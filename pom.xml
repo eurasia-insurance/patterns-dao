@@ -9,7 +9,7 @@
 
 	<groupId>tech.lapsa.patterns</groupId>
 	<artifactId>patterns-dao-root</artifactId>
-	<version>1.2.1</version>
+	<version>CURRENT-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Patterns Lib : DAO : Root POM</name>
@@ -21,8 +21,8 @@
 
 	<properties>
 		<!-- BOMS -->
-		<javax-javaee-bom.version>7.0a</javax-javaee-bom.version>
-		<java-commons.version>1.2</java-commons.version>
+		<javax-javaee-bom.version>CURRENT-SNAPSHOT</javax-javaee-bom.version>
+		<java-commons.version>CURRENT-SNAPSHOT</java-commons.version>
 	</properties>
 
 	<dependencyManagement>
