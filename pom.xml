@@ -57,9 +57,9 @@
 	</dependencyManagement>
 
 	<scm>
-		<connection>scm:git:https://gitlab.lapsa.tech/lapsa/patterns/dao.git</connection>
-		<developerConnection>scm:git:https://gitlab.lapsa.tech/lapsa/patterns/dao.git</developerConnection>
-		<tag>v1.2.1</tag>
+		<connection>scm:git:https://github.com/eurasia-insurance/patterns-dao.git</connection>
+		<developerConnection>scm:git:https://github.com/eurasia-insurance/patterns-dao.git</developerConnection>
+		<tag>HEAD</tag>
 	</scm>
 
 	<issueManagement>
