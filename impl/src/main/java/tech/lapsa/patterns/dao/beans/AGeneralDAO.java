@@ -38,16 +38,24 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
 			entityClass.getSimpleName(), id));
     }
 
+    protected <ET extends T> void beforeSave(final ET entity) {
+    }
+    
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public <ET extends T> ET save(final ET entity) throws IllegalArgument {
 	MyObjects.requireNonNull(IllegalArgument::new, entity, "entity");
 	try {
+	    beforeSave(entity);
 	    final ET merged = getEntityManager().merge(entity);
+	    afterSave(entity);
 	    return merged;
 	} catch (final PersistenceException e) {
 	    throw new EJBException(e);
 	}
+    }
+
+    protected <ET extends T> void afterSave(final ET entity) {
     }
 
     @Override
@@ -72,7 +80,9 @@ public abstract class AGeneralDAO<T extends Serializable, I extends Serializable
 	try {
 	    MyObjects.requireNonNull(entities, "entities");
 	    final Collection<ET> ret = entities.stream() //
+		    .peek(this::beforeSave)
 		    .map(getEntityManager()::merge) //
+		    .peek(this::afterSave)
 		    .collect(Collectors.toList());
 	    return ret;
 	} catch (final PersistenceException e) {
