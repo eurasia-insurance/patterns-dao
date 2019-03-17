@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>tech.lapsa.patterns</groupId>
 		<artifactId>patterns-dao-root</artifactId>
-		<version>20190317r6</version>
+		<version>CURRENT-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>patterns-dao-impl</artifactId>
